@@ -4,11 +4,12 @@ package pom;
 import org.openqa.selenium.*;
 
 public class OrderPage {
-
     //Главная страница Яндекс.Самокат
     public final String url = "https://qa-scooter.praktikum-services.ru/";
     //Нижняя кнопка "Заказать"
-    private final By orderButton= By.xpath(".//button[@class = 'Button_Button__ra12g' or @class = 'Button_Button__ra12g Button_Middle__1CSJM']");
+    private final By downOrderButton = By.xpath(".//button[@class = 'Button_Button__ra12g Button_Middle__1CSJM']");
+    //Кнопка закрытия Cookie
+    private final By cookieButton = By.id("rcc-confirm-button");
     //Поле ввода Имени
     private final By inputName = By.xpath(".//input[@placeholder = '* Имя']");
     //Поле ввода Фамилии
@@ -37,7 +38,8 @@ public class OrderPage {
     private final By yesButton = By.xpath(".//button[@class = 'Button_Button__ra12g Button_Middle__1CSJM' and text() = 'Да']");
     //Всплывающее окна об успешном создании заказа
     private final By orderHasBeenSuccess = By.xpath(".//div[@class = 'Order_Modal__YZ-d3']");
-    private final WebDriver driver;
+
+    private WebDriver driver;
 
     public OrderPage (WebDriver driver) {
         this.driver = driver;
@@ -47,10 +49,26 @@ public class OrderPage {
         driver.get(url);
     }
 
-    public void clickOrderButton() {
-        WebElement element = driver.findElement(orderButton);
-        ((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView();", element);
-        driver.findElement(orderButton).click();
+    public void clickCookieButton(){
+        driver.findElement(cookieButton).click();
+    }
+
+    public void scrollClickOrderButton(String button){
+        if(button.equals(".//button[@class = 'Button_Button__ra12g']")){
+            clickOrderButton(button);
+        }else{
+            WebElement element = driver.findElement(downOrderButton);
+            ((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView();", element);
+            clickOrderButton(button);
+        }
+    }
+
+    public void clickOrderButton(String button) {
+        driver.findElement(By.xpath(button)).click();
+    }
+
+    public boolean isOrderPageDisplayed(String expected){
+        return driver.findElement(By.className(expected)).isDisplayed();
     }
 
     public void inputName(String name) {
@@ -64,6 +82,7 @@ public class OrderPage {
     public void inputFormCity(String city) {
         driver.findElement(inputPlace).sendKeys(city);
     }
+
     public void chooseMetro() {
         driver.findElement(inputMetroStation).sendKeys(Keys.ARROW_DOWN, Keys.ENTER);
     }
@@ -71,6 +90,7 @@ public class OrderPage {
     public void inputPhoneNumber(String phoneNumber) {
         driver.findElement(inputPhoneNumber).sendKeys(phoneNumber);
     }
+
     public void clickNextButton() {
         driver.findElement(nextPageButton).click();
     }
@@ -101,4 +121,22 @@ public class OrderPage {
         return driver.findElement(orderHasBeenSuccess).isDisplayed();
     }
 
+    //Метод взаимодействия с первой частью заказа
+    public void fillFirstOrderPage(String name, String surname, String city, String phoneNumber){
+        inputName(name);
+        inputSurname(surname);
+        inputFormCity(city);
+        inputPhoneNumber(phoneNumber);
+        chooseMetro();
+        clickNextButton();
+    }
+
+    //Метод взаимодействия со второй частью заказа
+    public void fillSecondOrderPage(String comment){
+        chooseDeliveryDay();
+        chooseRentalPeriod();
+        chooseScooterColor();
+        inputCommentForCourier(comment);
+        clickFinishOrderButton();
+    }
 }
